@@ -4,17 +4,25 @@ import axios from 'axios'
 function InputComponent() {
     const [coins, setCoins] = useState([])
     const [search, setSearch] = useState('')
+    const [page, setPage] = useState(1)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=INR&order=market_cap_desc&per_page=100&page=1&sparkline=false`)
+      setLoading(true)
+        axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=INR&order=market_cap_desc&per_page=100&page=${page}&sparkline=false`)
         .then(res => {
             console.log(res)
-          setCoins(res.data)
+          setCoins([...coins, ...res.data])
+          setLoading(false)
+
         })
         .catch(err => {
             console.log(err);
+            setLoading(false)
         })
-    }, [])
+    }, [page])
+
+    console.log(coins)
 
     const handleChange = (e) => {
         setSearch(e.target.value)
@@ -40,8 +48,10 @@ function InputComponent() {
       </div>
       </div>
       <div className='coin-wrapper'>
-        {filteredCoins.map(coin => (
-            <div key={coin.id} className="coin">
+        { filteredCoins.length ? 
+        
+        filteredCoins.map((coin, i) => (
+            <div key={(coin.id + i).toString()} className="coin">
                 <div className='coin-name'>
                 <img src={coin.image} alt="" />
                 <p>{coin.name}</p>
@@ -53,7 +63,10 @@ function InputComponent() {
                     <p>Rs.{coin.market_cap.toLocaleString()}</p>
                 </div>
             </div>
-        ))}
+        )) : null}
+      </div>
+      <div style={{width: 200, margin: "0 auto"}}>
+        <button onClick={() => setPage(page + 1)} disabled={loading}>Load More</button>
       </div>
     </div>
   )
